@@ -66,7 +66,7 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const { data } = await worker.recognize(canvas, {}, { hocr: true, text: false });
             conf.innerText = data.confidence;
-            if (data.confidence >= 80) {
+            if (data.confidence >= 90) {
                 // console.table(data);
                 hocr.innerHTML = data.hocr;
                 // hocr.innerText = data.text;
