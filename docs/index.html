@@ -3,16 +3,22 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0">
     <title>Offline Camera OCR</title>
     <!-- v5 -->
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    <style>
+        html,body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            height: calc(var(--vh, 1vh) * 100);
+        }
+    </style>
 </head>
 
 <body>
-    <h1>OCR with Tesseract.js!</h1>
     <video autoplay></video>
-    <canvas></canvas>
     <div id="ld">Loading...</div>
     <div id="run" style="display: none;">
         <button onclick="capture()">Capture</button>
@@ -23,6 +29,7 @@
             <span id="output"></span>
         </div>
     </div>
+    <canvas></canvas>
 
     <script>
         let video = document.getElementsByTagName("video")[0],
@@ -31,8 +38,13 @@
         let running = false;
         let output = document.getElementById("output");
 
+        function resizeOps() {
+            document.documentElement.style.setProperty("--vh", window.innerHeight * 0.01 + "px");
+        }
+        resizeOps();
+        window.addEventListener("resize", resizeOps);
+
         async function start() {
-            const x = await getCameras();
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: false,
@@ -50,11 +62,6 @@
                 console.error(error);
             }
             worker = await Tesseract.createWorker("eng", 1);
-        }
-
-        async function getCameras() {
-            const devices = await navigator.mediaDevices.enumerateDevices();
-            return devices.filter(device => device.kind == "videoinput");
         }
 
         async function capture() {
