@@ -30,7 +30,7 @@
             <span id="output"></span>
         </div>
     </div>
-    <canvas></canvas>
+    <canvas style="display: none; visibility: hidden;"></canvas>
 
     <script>
         const video = document.getElementsByTagName("video")[0];
@@ -61,16 +61,15 @@
             } catch (error) {
                 console.error(error);
             }
-            worker = await Tesseract.createWorker("eng", 1);
+            worker = await Tesseract.createWorker("eng");
         }
 
         async function capture() {
             const ctx = canvas.getContext("2d");
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const img = canvas.toDataURL("img/png");
             const {
                 data: { text },
-            } = await worker.recognize(img);
+            } = await worker.recognize(canvas);
             output.textContent = text;
         }
 
