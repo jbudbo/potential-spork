@@ -18,7 +18,7 @@
 </head>
 
 <body>
-    <video autoplay></video>
+    <video autoplay playsinline></video>
     <div id="ld">Loading...</div>
     <div id="run" style="display: none;">
         <button onclick="capture()">Capture</button>
@@ -32,11 +32,11 @@
     <canvas></canvas>
 
     <script>
-        let video = document.getElementsByTagName("video")[0],
-            canvas = document.getElementsByTagName("canvas")[0],
-            ctx, worker;
-        let running = false;
-        let output = document.getElementById("output");
+        const video = document.getElementsByTagName("video")[0];
+        const canvas = document.getElementsByTagName("canvas")[0];
+        const output = document.getElementById("output");
+        
+        let worker;
 
         function resizeOps() {
             document.documentElement.style.setProperty("--vh", window.innerHeight * 0.01 + "px");
@@ -56,7 +56,6 @@
                     canvas.height = video.videoHeight;
                     document.getElementById("ld").style.setProperty("display", "none");
                     document.getElementById("run").style.removeProperty("display");
-                    running = true;
                 }
             } catch (error) {
                 console.error(error);
@@ -65,7 +64,7 @@
         }
 
         async function capture() {
-            ctx = canvas.getContext("2d");
+            const ctx = canvas.getContext("2d");
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
             const img = canvas.toDataURL("img/png");
             const {
