@@ -22,22 +22,51 @@
     <video autoplay playsinline></video>
     <div id="ld">Loading...</div>
     <div id="run" style="display: none;">
-        <button onclick="capture()">Capture</button>
+        <!-- <button onclick="capture()">Capture</button> -->
         <div>
-            <b>
-                output:
-            </b>
-            <span id="output"></span>
+            <p id="output"></p>
         </div>
     </div>
     <canvas style="display: none; visibility: hidden;"></canvas>
-
+    <!-- <div class="row">
+        <div class="column">
+          <p>Input Image</p>
+          <img id="imgInput" style="max-width:500px;">
+        </div>
+        <div class="column">
+          <p>Rotated, Original Color</p>
+          <img id="imgOriginal" style="max-width:500px;">
+        </div>
+        <div class="column">
+          <p>Rotated, Grey</p>
+          <img id="imgGrey" style="max-width:500px;">
+        </div>
+        <div class="column">
+          <p>Rotated, Binary</p>
+          <img id="imgBinary" style="max-width:500px;">
+        </div>
+      </div> -->
     <script>
         const video = document.getElementsByTagName("video")[0];
         const canvas = document.getElementsByTagName("canvas")[0];
+        const ctx = canvas.getContext("2d");
         const output = document.getElementById("output");
         
-        let worker;
+        const scheduler = Tesseract.createScheduler();
+
+        async function genWorkers() {
+            for (let i = 0; i < 4; i++) {
+                const worker = await Tesseract.createWorker("eng", Tesseract.OEM.DEFAULT, {
+                    // legacyCore: false,
+                    // legacyLang: false,
+                });
+                worker.setParameters({
+                    // tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT,
+                    // user_defined_dpi: 50
+                })
+                scheduler.addWorker(worker);
+            }
+        }
 
         function resizeOps() {
             document.documentElement.style.setProperty("--vh", window.innerHeight * 0.01 + "px");
@@ -61,16 +90,20 @@
             } catch (error) {
                 console.error(error);
             }
-            worker = await Tesseract.createWorker("eng");
+            await genWorkers();
+            requestAnimationFrame(capture);
         }
 
         async function capture() {
-            const ctx = canvas.getContext("2d");
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const {
-                data: { text },
-            } = await worker.recognize(canvas);
-            output.textContent = text;
+            const { data } = await scheduler.addJob('recognize', canvas);//, {rotateAuto: true}, {imageColor: true, imageGrey: true, imageBinary: true});
+            // console.table(data);
+            // console.log(data.confidence);
+            if (data.confidence >= 85) {
+                output.textContent = data.text;
+            }
+
+            requestAnimationFrame(capture);
         }
 
         start();
