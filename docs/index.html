@@ -6,8 +6,7 @@
     <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Offline Camera OCR</title>
-    <!-- v5 -->
-    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.0/dist/tesseract.min.js" integrity="sha256-XQ0OqjYPYHiz6df5S453qRO+Ub5B84RM7w/R+hpsll4=" crossorigin="anonymous"></script>
     <style>
         html,body {
             margin: 0;
@@ -15,58 +14,29 @@
             height: 100vh;
             height: calc(var(--vh, 1vh) * 100);
         }
+        video, canvas {
+            width: 100vw;
+        }
     </style>
 </head>
 
 <body>
     <video autoplay playsinline></video>
+    <label>Confidence: <span id="conf"></span></label> 
     <div id="ld">Loading...</div>
     <div id="run" style="display: none;">
-        <!-- <button onclick="capture()">Capture</button> -->
-        <div>
-            <p id="output"></p>
-        </div>
+        <div id="h"></div>
     </div>
     <canvas style="display: none; visibility: hidden;"></canvas>
-    <!-- <div class="row">
-        <div class="column">
-          <p>Input Image</p>
-          <img id="imgInput" style="max-width:500px;">
-        </div>
-        <div class="column">
-          <p>Rotated, Original Color</p>
-          <img id="imgOriginal" style="max-width:500px;">
-        </div>
-        <div class="column">
-          <p>Rotated, Grey</p>
-          <img id="imgGrey" style="max-width:500px;">
-        </div>
-        <div class="column">
-          <p>Rotated, Binary</p>
-          <img id="imgBinary" style="max-width:500px;">
-        </div>
-      </div> -->
     <script>
         const video = document.getElementsByTagName("video")[0];
         const canvas = document.getElementsByTagName("canvas")[0];
         const ctx = canvas.getContext("2d");
         const output = document.getElementById("output");
+        const hocr = document.getElementById("h");
+        const conf = document.getElementById("conf");
         
-        const scheduler = Tesseract.createScheduler();
-
-        async function genWorkers() {
-            for (let i = 0; i < 4; i++) {
-                const worker = await Tesseract.createWorker("eng", Tesseract.OEM.DEFAULT, {
-                    // legacyCore: false,
-                    // legacyLang: false,
-                });
-                worker.setParameters({
-                    // tessedit_pageseg_mode: Tesseract.PSM.SPARSE_TEXT,
-                    // user_defined_dpi: 50
-                })
-                scheduler.addWorker(worker);
-            }
-        }
+        let worker;
 
         function resizeOps() {
             document.documentElement.style.setProperty("--vh", window.innerHeight * 0.01 + "px");
@@ -90,17 +60,17 @@
             } catch (error) {
                 console.error(error);
             }
-            await genWorkers();
+            worker = await Tesseract.createWorker("eng");
             requestAnimationFrame(capture);
         }
 
         async function capture() {
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const { data } = await scheduler.addJob('recognize', canvas);//, {rotateAuto: true}, {imageColor: true, imageGrey: true, imageBinary: true});
-            // console.table(data);
-            // console.log(data.confidence);
+            const { data } = await worker.recognize(canvas);
+            conf.innerText = data.confidence;
             if (data.confidence >= 85) {
-                output.textContent = data.text;
+                console.table(data);
+                hocr.innerHTML = data.hocr;
             }
 
             requestAnimationFrame(capture);
