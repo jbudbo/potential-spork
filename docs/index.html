@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,height=device-height,initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Offline Camera OCR</title>
     <!-- v5 -->
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
@@ -48,7 +49,7 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: false,
-                    video: { exact: "environment" },
+                    video: { facingMode: "environment" },
                 });
                 video.srcObject = stream;
                 video.onresize = function () {
